@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RefPath Condition="'$(RefPath)' == ''">C:\isab\ref</RefPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="TShockAPI" HintPath="$(RefPath)\TShockAPI.dll" Private="false" />
+    <Reference Include="OTAPI" HintPath="$(RefPath)\OTAPI.dll" Private="false" />
+    <Reference Include="TerrariaServer" HintPath="$(RefPath)\TerrariaServer.dll" Private="false" />
+    <Reference Include="ModFramework" HintPath="$(RefPath)\ModFramework.dll" Private="false" />
+  </ItemGroup>
+</Project>
