@@ -14,6 +14,7 @@ namespace Compat146
 		private const string ServerVersion = "Terraria326";
 
 		private static readonly bool[] IsNewClient = new bool[256];
+		private static readonly short[] LastAnimationMax = new short[256];
 
 		public override string Name => "Compat146";
 		public override string Author => "isawicca";
@@ -46,15 +47,27 @@ namespace Compat146
 		private static void OnLeave(LeaveEventArgs args)
 		{
 			if (args.Who >= 0 && args.Who < IsNewClient.Length)
+			{
 				IsNewClient[args.Who] = false;
+				LastAnimationMax[args.Who] = 0;
+			}
 		}
 
 		private static void OnGetData(GetDataEventArgs args)
 		{
-			if (args.Handled || args.MsgID != PacketTypes.ConnectRequest)
+			if (args.Handled)
 				return;
 
 			int who = args.Msg.whoAmI;
+			if (args.MsgID == PacketTypes.PlayerAnimation)
+			{
+				if (IsNewClient[who] && args.Length - 1 >= 9)
+					LastAnimationMax[who] = BitConverter.ToInt16(args.Msg.readBuffer, args.Index + 7);
+				return;
+			}
+			if (args.MsgID != PacketTypes.ConnectRequest)
+				return;
+
 			byte[] buffer = args.Msg.readBuffer;
 			int start = args.Index;
 			int length = args.Length - 1;
@@ -171,9 +184,12 @@ namespace Compat146
 			if (body.Length != 7)
 				return body;
 			int player = body[0];
-			short animationMax = player < Main.player.Length && Main.player[player] != null
-				? (short)Main.player[player].itemAnimationMax
-				: BitConverter.ToInt16(body, 5);
+			short animation = BitConverter.ToInt16(body, 5);
+			short animationMax = player < LastAnimationMax.Length ? LastAnimationMax[player] : (short)0;
+			if (animationMax <= 0 && player < Main.player.Length && Main.player[player] != null)
+				animationMax = (short)Main.player[player].itemAnimationMax;
+			if (animationMax < animation)
+				animationMax = animation;
 			byte[] result = new byte[9];
 			Array.Copy(body, result, 7);
 			BitConverter.GetBytes(animationMax).CopyTo(result, 7);
